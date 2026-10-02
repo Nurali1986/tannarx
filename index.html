@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal tannarx va zararsizlik nuqtasi kalkulyatori</title>
+<style>
+  :root{
+    --paper:#f0efe9;
+    --paper-light:#ffffff;
+    --ink:#22262b;
+    --ink-soft:#5a6169;
+    --rule:#cfd0c9;
+    --accent:#4a5d4e;
+    --accent-dark:#333f36;
+    --gold:#a9843f;
+    --red:#8f3a2e;
+    --red-bg:#f3e3de;
+    --green:#2e6b52;
+    --green-bg:#dfece5;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    line-height:1.5;
+    min-height:100vh;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px;}
+
+  header.masthead{
+    padding:44px 24px 26px;
+    margin-bottom:36px;
+    border-bottom:2px solid var(--accent);
+  }
+  header.masthead .eyebrow{
+    font-size:12.5px;
+    letter-spacing:0.06em;
+    color:var(--gold);
+    margin-bottom:10px;
+    font-weight:700;
+  }
+  header.masthead h1{font-size:clamp(26px,4.2vw,38px); font-weight:700; margin:0 0 10px;}
+  header.masthead p{max-width:600px; margin:0; color:var(--ink-soft); font-size:15px;}
+
+  .mode-toggle{
+    display:flex;
+    gap:8px;
+    margin-top:18px;
+  }
+  .mode-toggle button{
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--rule);
+    background:var(--paper-light);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .mode-toggle button.active{
+    background:var(--accent-dark);
+    border-color:var(--accent-dark);
+    color:#fff;
+  }
+
+  section.block{margin-bottom:38px;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:16px;
+    padding-bottom:8px;
+    border-bottom:1.5px solid var(--rule);
+  }
+  .section-head .tag{
+    font-size:12px;
+    font-weight:700;
+    color:#fff;
+    background:var(--accent);
+    padding:3px 9px;
+    border-radius:3px;
+    flex-shrink:0;
+  }
+  .section-head h2{font-size:19px; font-weight:700; margin:0;}
+  .section-head .hint{font-size:13px; color:var(--ink-soft); margin-left:auto; text-align:right;}
+
+  .fixed-row, .item-card{
+    background:var(--paper-light);
+    border:1px solid var(--rule);
+    border-radius:6px;
+  }
+  .fixed-row{
+    display:grid;
+    grid-template-columns:1fr 180px 34px;
+    gap:10px;
+    align-items:center;
+    padding:11px 14px;
+    margin-bottom:8px;
+    box-shadow:0 1px 2px rgba(34,38,43,0.05);
+  }
+
+  input[type=text], input[type=number]{
+    font-family:inherit;
+    font-size:15px;
+    color:var(--ink);
+    background:transparent;
+    border:none;
+    border-bottom:1.5px solid var(--rule);
+    padding:5px 4px;
+    width:100%;
+    outline:none;
+  }
+  input[type=text]:focus, input[type=number]:focus{border-bottom-color:var(--accent);}
+  input[type=number]{text-align:right; padding-right:38px;}
+  .curr{position:relative;}
+  .curr span{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    font-size:11.5px;color:var(--ink-soft);pointer-events:none;
+  }
+
+  .icon-btn{
+    width:30px;height:30px;
+    border:1px solid var(--rule);
+    background:var(--paper);
+    color:var(--red);
+    border-radius:50%;
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    transition:background 0.15s, transform 0.1s;
+  }
+  .icon-btn:hover{background:var(--red-bg); transform:scale(1.06);}
+
+  .add-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+    background:#fff;
+    border:1.5px dashed var(--gold);
+    color:#7a5c26;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:700;
+    padding:9px 16px;
+    border-radius:5px;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  .add-btn:hover{background:rgba(169,132,63,0.08);}
+
+  .item-card{
+    padding:16px 18px;
+    margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(34,38,43,0.06);
+  }
+  .item-card .i-top{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .item-card .i-top input[type=text]{
+    font-size:17px;
+    font-weight:700;
+    border-bottom:2px solid var(--rule);
+  }
+  .item-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px 18px;
+    margin-bottom:14px;
+  }
+  .item-grid.secondary{
+    grid-template-columns:repeat(3,1fr);
+    padding-top:12px;
+    border-top:1px dashed var(--rule);
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    font-weight:600;
+  }
+  .field label .opt{font-weight:400; font-style:italic;}
+
+  .tax-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--paper-light);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:14px 16px;
+  }
+  .tax-row label{font-weight:700; font-size:15px; flex-shrink:0;}
+  .tax-row .field{flex:1; max-width:160px;}
+
+  .calc-btn{
+    display:block;
+    width:100%;
+    margin-top:26px;
+    background:var(--accent-dark);
+    color:#fff;
+    border:none;
+    font-family:inherit;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    padding:16px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  .calc-btn:hover{background:#232b25;}
+
+  #results{display:none;}
+  .verdict{border-radius:6px; padding:20px 22px; margin-bottom:24px; border:1.5px solid;}
+  .verdict.ok{background:var(--green-bg); border-color:var(--green); color:#1f4a37;}
+  .verdict.bad{background:var(--red-bg); border-color:var(--red); color:#5e2620;}
+  .verdict .verdict-title{font-size:18px; font-weight:700; margin-bottom:6px;}
+  .verdict .verdict-num{font-size:25px; font-weight:800; margin:4px 0; font-variant-numeric:tabular-nums;}
+  .verdict p{margin:6px 0 0; font-size:14.5px;}
+
+  table.tbl{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:22px;
+    font-size:14px;
+    background:var(--paper-light);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  table.tbl caption{text-align:left; font-weight:700; font-size:15px; margin-bottom:8px; caption-side:top;}
+  table.tbl th, table.tbl td{border-bottom:1px solid var(--rule); padding:9px 8px; text-align:right;}
+  table.tbl th:first-child, table.tbl td:first-child{text-align:left;}
+  table.tbl thead th{font-size:11px; letter-spacing:0.02em; color:#fff; background:var(--accent); font-weight:700;}
+  table.tbl tfoot td{font-weight:700; border-top:2px solid var(--accent); border-bottom:none;}
+  td.num, th.num{font-variant-numeric:tabular-nums;}
+  .neg{color:var(--red); font-weight:700;}
+  .over-cap{color:var(--red);}
+
+  .summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:24px;}
+  .summary-box{background:var(--paper-light); border:1px solid var(--rule); border-radius:6px; padding:14px 16px; box-shadow:0 1px 2px rgba(34,38,43,0.05);}
+  .summary-box .label{font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; font-weight:600;}
+  .summary-box .value{font-size:20px; font-weight:800; font-variant-numeric:tabular-nums;}
+
+  footer.note{font-size:13px; color:var(--ink-soft); border-top:1.5px solid var(--rule); padding-top:14px; margin-top:10px;}
+
+  @media (max-width:640px){
+    .item-grid, .item-grid.secondary{grid-template-columns:1fr 1fr;}
+    .summary-grid{grid-template-columns:1fr;}
+    .fixed-row{grid-template-columns:1fr 130px 30px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">UNIVERSAL KALKULYATOR</div>
+    <h1>Tannarx va zararsizlik nuqtasi</h1>
+    <p>Tovar ishlab chiqarish, savdo yoki xizmat ko'rsatish — qaysi biznes bo'lishidan qat'iy nazar ishlaydi. Har bir mahsulot/xizmat uchun ham aniq summadagi (xom-ashyo kabi), ham foizdagi (komissiya, ulush kabi) xarajatni kiritishingiz mumkin — kerak bo'lmaganini 0 qoldiring.</p>
+    <div class="mode-toggle">
+      <button class="active" onclick="loadPreset('service', this)">Misol: xizmat (o'quv markazi)</button>
+      <button onclick="loadPreset('goods', this)">Misol: tovar (suv zavodi)</button>
+      <button onclick="loadPreset('blank', this)">Bo'sh boshlash</button>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="section-head">
+      <span class="tag">1</span>
+      <h2>Doimiy xarajatlar</h2>
+      <span class="hint">oyiga, savdo hajmidan qat'iy nazar</span>
+    </div>
+    <div id="fixedList"></div>
+    <button class="add-btn" onclick="addFixedRow()">+ Xarajat qo'shish</button>
+  </section>
+
+  <section class="block">
+    <div class="section-head">
+      <span class="tag">2</span>
+      <h2>O'zgaruvchan xarajatlar (mahsulot/xizmat)</h2>
+      <span class="hint">narx, xarajatlar va sig'im/quvvat</span>
+    </div>
+    <div id="itemList"></div>
+    <button class="add-btn" onclick="addItem()">+ Mahsulot yoki xizmat qo'shish</button>
+  </section>
+
+  <section class="block">
+    <div class="section-head">
+      <span class="tag">3</span>
+      <h2>Bir martalik xarajatlar</h2>
+      <span class="hint">jihoz, mebel — bir marta sotib olinadi</span>
+    </div>
+    <div id="onceList"></div>
+    <button class="add-btn" onclick="addOnceRow()">+ Jihoz qo'shish</button>
+    <div class="tax-row" style="margin-top:12px;">
+      <label for="amortMonths">Amortizatsiya muddati</label>
+      <div class="field curr">
+        <input type="number" id="amortMonths" value="24" step="1">
+        <span>oy</span>
+      </div>
+      <span class="hint" style="margin-left:auto; max-width:320px;">Bu xarajatlar shuncha oyga bo'linib, oylik doimiy xarajatga qo'shiladi</span>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="section-head">
+      <span class="tag">4</span>
+      <h2>Soliq</h2>
+      <span class="hint">umumiy aylanmadan foizda</span>
+    </div>
+    <div class="tax-row">
+      <label for="taxPct">Soliq stavkasi</label>
+      <div class="field curr">
+        <input type="number" id="taxPct" value="5" step="0.1">
+        <span>%</span>
+      </div>
+    </div>
+  </section>
+
+  <button class="calc-btn" onclick="calculate()">Hisoblash</button>
+
+  <div id="results"></div>
+
+</div>
+
+<script>
+let fixedId = 0, itemId = 0, onceId = 0;
+
+function fmt(n){
+  n = Math.round(n);
+  return n.toLocaleString('fr-FR').replace(/,/g,' ');
+}
+
+function clearAll(){
+  document.getElementById('fixedList').innerHTML = '';
+  document.getElementById('itemList').innerHTML = '';
+  document.getElementById('onceList').innerHTML = '';
+  document.getElementById('results').style.display = 'none';
+}
+
+function addOnceRow(name, qty, unitPrice){
+  onceId++;
+  const list = document.getElementById('onceList');
+  const row = document.createElement('div');
+  row.className = 'fixed-row';
+  row.id = 'once-' + onceId;
+  row.style.gridTemplateColumns = '1fr 90px 150px 34px';
+  row.innerHTML = `
+    <input type="text" value="${name || ''}" placeholder="Jihoz nomi (masalan: Stol)">
+    <input type="number" class="once-qty" value="${qty !== undefined ? qty : 1}" placeholder="soni" title="Soni (dona)">
+    <div class="curr">
+      <input type="number" class="once-price" value="${unitPrice !== undefined ? unitPrice : ''}" placeholder="0" style="padding-right:75px;">
+      <span>    so'm/dona</span>
+    </div>
+    <button class="icon-btn" onclick="document.getElementById('once-${onceId}').remove()" title="O'chirish">&times;</button>
+  `;
+  list.appendChild(row);
+}
+
+function addFixedRow(name, value){
+  fixedId++;
+  const list = document.getElementById('fixedList');
+  const row = document.createElement('div');
+  row.className = 'fixed-row';
+  row.id = 'fixed-' + fixedId;
+  row.innerHTML = `
+    <input type="text" value="${name || ''}" placeholder="Xarajat nomi (masalan: Ijara)">
+    <div class="curr">
+      <input type="number" value="${value !== undefined ? value : ''}" placeholder="0">
+      <span>so'm</span>
+    </div>
+    <button class="icon-btn" onclick="document.getElementById('fixed-${fixedId}').remove()" title="O'chirish">&times;</button>
+  `;
+  list.appendChild(row);
+}
+
+function addItem(opts){
+  opts = opts || {};
+  itemId++;
+  const list = document.getElementById('itemList');
+  const card = document.createElement('div');
+  card.className = 'item-card';
+  card.id = 'item-' + itemId;
+  card.innerHTML = `
+    <div class="i-top">
+      <input type="text" value="${opts.name || ''}" placeholder="Nomi (masalan: 1L suv yoki Ingliz tili kursi)">
+      <button class="icon-btn" onclick="document.getElementById('item-${itemId}').remove()" title="O'chirish">&times;</button>
+    </div>
+    <div class="item-grid">
+      <div class="field">
+        <label>Sotish narxi (dona/oy)</label>
+        <div class="curr">
+          <input type="number" class="it-price" value="${opts.price !== undefined ? opts.price : ''}" placeholder="0">
+          <span>so'm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Oylik sig'im / quvvat</label>
+        <div class="curr">
+          <input type="number" class="it-cap" value="${opts.cap !== undefined ? opts.cap : ''}" placeholder="0">
+          <span>dona</span>
+        </div>
+      </div>
+    </div>
+    <div class="item-grid secondary">
+      <div class="field">
+        <label>Xom-ashyo/material <span class="opt">(tovar uchun)</span></label>
+        <div class="curr">
+          <input type="number" class="it-mat" value="${opts.mat !== undefined ? opts.mat : ''}" placeholder="0">
+          <span>so'm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Komissiya/ulush <span class="opt">(xizmat uchun)</span></label>
+        <div class="curr">
+          <input type="number" class="it-comm" value="${opts.comm !== undefined ? opts.comm : ''}" placeholder="0">
+          <span>%</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Boshqa o'zgaruvchan <span class="opt">(ixtiyoriy)</span></label>
+        <div class="curr">
+          <input type="number" class="it-other" value="${opts.other !== undefined ? opts.other : ''}" placeholder="0">
+          <span>so'm</span>
+        </div>
+      </div>
+    </div>
+  `;
+  list.appendChild(card);
+}
+
+function loadPreset(kind, btn){
+  document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  clearAll();
+
+  if(kind === 'service'){
+    addFixedRow('Bino ijarasi', 12000000);
+    addFixedRow('Internet', 250000);
+    addFixedRow('Elektr toki', 700000);
+    addFixedRow('Admin oyligi', 5000000);
+    addFixedRow('Buxgalter oyligi', 2500000);
+    addItem({name:'Ingliz tili', price:1000000, cap:10, comm:40});
+    addItem({name:'Matematika', price:900000, cap:10, comm:40});
+    addItem({name:'Maktabgacha tayyorlov', price:700000, cap:10, comm:40});
+    addOnceRow('Stol', 30, 400000);
+    addOnceRow('Stul', 30, 150000);
+    addOnceRow('Doska', 3, 500000);
+    addOnceRow('Kompyuter (admin)', 1, 6000000);
+    addOnceRow('Konditsioner', 3, 3500000);
+  } else if(kind === 'goods'){
+    addFixedRow('Sex ijarasi', 15000000);
+    addFixedRow('Ishchilar oyligi (jami)', 12000000);
+    addFixedRow('Elektr energiya', 4000000);
+    addFixedRow('Transport', 3000000);
+    addItem({name:'0.5L suv', price:1500, cap:50000, mat:600});
+    addItem({name:'1L suv', price:2500, cap:40000, mat:900});
+    addItem({name:'19L (karboy) suv', price:12000, cap:8000, mat:3000});
+    addOnceRow('Suv tozalash uskunasi', 1, 120000000);
+    addOnceRow('Idishga quyish liniyasi', 1, 90000000);
+    addOnceRow('Kompyuter (buxgalteriya)', 1, 6000000);
+  } else {
+    addFixedRow();
+    addItem();
+    addOnceRow();
+  }
+}
+
+// Boshlang'ich holat
+loadPreset('service', document.querySelector('.mode-toggle button'));
+
+function calculate(){
+  let monthlyFixedTotal = 0;
+  document.querySelectorAll('#fixedList .fixed-row').forEach(row => {
+    const val = parseFloat(row.querySelector('input[type=number]').value) || 0;
+    monthlyFixedTotal += val;
+  });
+
+  let onceTotal = 0;
+  document.querySelectorAll('#onceList .fixed-row').forEach(row => {
+    const qty = parseFloat(row.querySelector('.once-qty').value) || 0;
+    const unitPrice = parseFloat(row.querySelector('.once-price').value) || 0;
+    onceTotal += qty * unitPrice;
+  });
+  const amortMonths = parseFloat(document.getElementById('amortMonths').value) || 1;
+  const monthlyAmort = onceTotal / amortMonths;
+  const fixedTotal = monthlyFixedTotal + monthlyAmort;
+
+  const items = [];
+  document.querySelectorAll('.item-card').forEach(card => {
+    const name = card.querySelector('input[type=text]').value || 'Nomsiz';
+    const price = parseFloat(card.querySelector('.it-price').value) || 0;
+    const cap = parseFloat(card.querySelector('.it-cap').value) || 0;
+    const mat = parseFloat(card.querySelector('.it-mat').value) || 0;
+    const comm = parseFloat(card.querySelector('.it-comm').value) || 0;
+    const other = parseFloat(card.querySelector('.it-other').value) || 0;
+    items.push({name, price, cap, mat, comm, other});
+  });
+
+  const taxPct = parseFloat(document.getElementById('taxPct').value) || 0;
+
+  if(items.length === 0 || fixedTotal === 0){
+    alert("Iltimos, kamida bir doimiy xarajat va bir mahsulot/xizmat kiriting.");
+    return;
+  }
+
+  const totalCap = items.reduce((s,it) => s + it.cap, 0);
+
+  let totalMarginAtFullCap = 0;
+  const rows = items.map(it => {
+    const commCost = it.price * (it.comm/100);
+    const taxCost = it.price * (taxPct/100);
+    const variableCost = it.mat + it.other + commCost + taxCost;
+    const margin = it.price - variableCost;
+    const capShare = totalCap > 0 ? it.cap / totalCap : 0;
+    const allocatedFixed = fixedTotal * capShare;
+    const fullTannarx = variableCost + (it.cap > 0 ? allocatedFixed / it.cap : 0);
+    const breakevenUnits = margin > 0 ? allocatedFixed / margin : Infinity;
+    totalMarginAtFullCap += margin * it.cap;
+    return {...it, variableCost, margin, allocatedFixed, fullTannarx, breakevenUnits};
+  });
+
+  const weightedAvgMargin = totalCap > 0 ? totalMarginAtFullCap / totalCap : 0;
+  const overallBreakeven = weightedAvgMargin > 0 ? fixedTotal / weightedAvgMargin : Infinity;
+  const profitAtFullCap = totalMarginAtFullCap - fixedTotal;
+  const paybackMonths = (onceTotal > 0 && profitAtFullCap > 0) ? onceTotal / profitAtFullCap : Infinity;
+
+  const totalRevenueAtFullCap = rows.reduce((s,r) => s + r.price*r.cap, 0);
+  const totalVarAtFullCap = rows.reduce((s,r) => s + r.variableCost*r.cap, 0);
+  const avgPrice = totalCap > 0 ? totalRevenueAtFullCap/totalCap : 0;
+  const avgVarCost = totalCap > 0 ? totalVarAtFullCap/totalCap : 0;
+
+  renderResults({fixedTotal, monthlyFixedTotal, onceTotal, monthlyAmort, amortMonths, paybackMonths, rows, totalCap, weightedAvgMargin, overallBreakeven, profitAtFullCap, totalMarginAtFullCap, avgPrice, avgVarCost});
+}
+
+function niceNum(range, round){
+  if(range <= 0) return 1;
+  const exp = Math.floor(Math.log10(range));
+  const f = range / Math.pow(10, exp);
+  let nf;
+  if(round){
+    if(f < 1.5) nf = 1;
+    else if(f < 3) nf = 2;
+    else if(f < 7) nf = 5;
+    else nf = 10;
+  } else {
+    if(f <= 1) nf = 1;
+    else if(f <= 2) nf = 2;
+    else if(f <= 5) nf = 5;
+    else nf = 10;
+  }
+  return nf * Math.pow(10, exp);
+}
+
+function niceScale(min, max, maxTicks){
+  const range = niceNum(max - min, false);
+  const step = niceNum(range / (maxTicks - 1), true);
+  const niceMin = Math.floor(min / step) * step;
+  const niceMax = Math.ceil(max / step) * step;
+  return {min: niceMin, max: niceMax, step: step};
+}
+
+function fmtAxis(y){
+  if(Math.abs(y) >= 1000000){
+    const v = y/1000000;
+    return (Number.isInteger(v) ? v : v.toFixed(1)) + ' mln';
+  }
+  return fmt(y);
+}
+
+function buildBreakevenChart(fixedTotal, avgPrice, avgVarCost, breakeven, totalCap){
+  const rawXMax = isFinite(breakeven) ? Math.max(totalCap, breakeven*1.3) : totalCap*1.3;
+  const xScale = niceScale(0, rawXMax || 1, 10);
+  const xMax = xScale.max || 1;
+  const xStep = xScale.step || 1;
+
+  const kirimFn = x => avgPrice*x;
+  const costFn = x => fixedTotal + avgVarCost*x;
+  const fixedFn = () => fixedTotal;
+
+  const rawYMax = Math.max(kirimFn(xMax), costFn(xMax)) * 1.05;
+  const yScale = niceScale(0, rawYMax || 1, 7);
+  const yMax = yScale.max || 1;
+  const yStep = yScale.step || 1;
+
+  const points = [];
+  for(let x=0; x<=xMax+0.0001; x+=xStep){ points.push(Math.round(x*100)/100); }
+
+  const width=760, height=380, padL=76, padR=20, padT=20, padB=40;
+  const plotW = width-padL-padR, plotH = height-padT-padB;
+  const X = x => padL + (x/xMax)*plotW;
+  const Y = y => padT + plotH - (y/yMax)*plotH;
+
+  function areaPath(fn){
+    let d = `M ${X(0)} ${Y(0)} `;
+    points.forEach(x => d += `L ${X(x)} ${Y(fn(x))} `);
+    d += `L ${X(xMax)} ${Y(0)} Z`;
+    return d;
+  }
+  function linePath(fn){
+    let d = '';
+    points.forEach((x,i) => { d += (i===0?'M':'L') + ` ${X(x)} ${Y(fn(x))} `; });
+    return d;
+  }
+  function dots(fn, color){
+    return points.map(x => `<circle cx="${X(x)}" cy="${Y(fn(x))}" r="3" fill="${color}"/>`).join('');
+  }
+
+  let gridLines = '';
+  for(let y=0; y<=yMax+0.0001; y+=yStep){
+    gridLines += `<line x1="${padL}" y1="${Y(y)}" x2="${width-padR}" y2="${Y(y)}" stroke="#e4e4e0" stroke-width="1"/>`;
+    gridLines += `<text x="${padL-10}" y="${Y(y)+4}" font-size="11" fill="#6b6b66" text-anchor="end">${fmtAxis(y)}</text>`;
+  }
+  let xLabels = '';
+  points.forEach(x => {
+    xLabels += `<text x="${X(x)}" y="${height-padB+18}" font-size="10" fill="#6b6b66" text-anchor="middle">${fmt(Math.round(x))}</text>`;
+  });
+
+  return `
+  <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit;display:block;">
+    ${gridLines}
+    <path d="${areaPath(kirimFn)}" fill="#3fae4e" fill-opacity="0.45" stroke="none"/>
+    <path d="${areaPath(costFn)}" fill="#d9483a" fill-opacity="0.55" stroke="none"/>
+    <path d="${areaPath(fixedFn)}" fill="#f0a828" fill-opacity="0.9" stroke="none"/>
+    <path d="${linePath(kirimFn)}" fill="none" stroke="#2e8b3d" stroke-width="2"/>
+    <path d="${linePath(costFn)}" fill="none" stroke="#b8382b" stroke-width="2"/>
+    <path d="${linePath(fixedFn)}" fill="none" stroke="#c98a1c" stroke-width="2"/>
+    ${dots(kirimFn,'#2e8b3d')}
+    ${dots(costFn,'#b8382b')}
+    ${dots(fixedFn,'#c98a1c')}
+    ${xLabels}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${height-padB}" stroke="#999"/>
+    <line x1="${padL}" y1="${height-padB}" x2="${width-padR}" y2="${height-padB}" stroke="#999"/>
+  </svg>`;
+}
+
+function renderResults(d){
+  const el = document.getElementById('results');
+  el.style.display = 'block';
+
+  const isProfitable = d.profitAtFullCap >= 0;
+  const canReachBreakeven = d.overallBreakeven <= d.totalCap;
+
+  let verdictHtml;
+  if(isProfitable){
+    verdictHtml = `
+      <div class="verdict ok">
+        <div class="verdict-title">To'liq sig'im/quvvatda biznes foyda beradi</div>
+        <div class="verdict-num">+${fmt(d.profitAtFullCap)} so'm / oy</div>
+        <p>Barcha ${fmt(d.totalCap)} dona/o'rin to'liq sotilganda, doimiy xarajatlar qoplanganidan keyin shuncha sof foyda qoladi.</p>
+      </div>`;
+  } else {
+    verdictHtml = `
+      <div class="verdict bad">
+        <div class="verdict-title">To'liq sig'im/quvvatda ham zarar ko'radi</div>
+        <div class="verdict-num">${fmt(d.profitAtFullCap)} so'm / oy</div>
+        <p>Barcha ${fmt(d.totalCap)} dona/o'rin to'liq sotilgan taqdirda ham, xarajatlar daromaddan ${fmt(Math.abs(d.profitAtFullCap))} so'mga oshib ketadi. ${d.overallBreakeven === Infinity ? "Joriy narx va xarajatlar bilan zararsizlik nuqtasiga umuman yetib bo'lmaydi." : `Zararsizlik nuqtasiga yetish uchun ${Math.ceil(d.overallBreakeven)} dona/o'rin kerak, lekin mavjudi bor-yo'g'i ${fmt(d.totalCap)}.`}</p>
+      </div>`;
+  }
+
+  let tableRows = '';
+  d.rows.forEach(r => {
+    const overCap = r.breakevenUnits > r.cap;
+    tableRows += `
+      <tr>
+        <td>${r.name}</td>
+        <td class="num">${fmt(r.price)}</td>
+        <td class="num">${fmt(r.variableCost)}</td>
+        <td class="num">${fmt(r.margin)}</td>
+        <td class="num">${fmt(r.fullTannarx)}</td>
+        <td class="num ${overCap ? 'over-cap' : ''}">${r.breakevenUnits === Infinity ? '\u2014' : fmt(Math.ceil(r.breakevenUnits))} / ${fmt(r.cap)}</td>
+      </tr>`;
+  });
+
+  let chartHtml;
+  try{
+    if(!d.totalCap || d.totalCap <= 0){
+      chartHtml = `<p style="color:var(--ink-soft); font-size:14px;">Diagrammani chizish uchun kamida bitta mahsulot/xizmatda sig'im/quvvat kiritilishi kerak.</p>`;
+    } else {
+      chartHtml = buildBreakevenChart(d.fixedTotal, d.avgPrice, d.avgVarCost, d.overallBreakeven, d.totalCap);
+    }
+  } catch(err){
+    chartHtml = `<p style="color:var(--red); font-size:13px;">Diagrammani chizishda xatolik yuz berdi: ${err && err.message ? err.message : err}</p>`;
+  }
+
+  el.innerHTML = `
+    ${verdictHtml}
+
+    <div class="summary-grid">
+      <div class="summary-box">
+        <div class="label">JAMI DOIMIY XARAJAT / OY (amortizatsiya bilan)</div>
+        <div class="value">${fmt(d.fixedTotal)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">JAMI SIG'IM / QUVVAT</div>
+        <div class="value">${fmt(d.totalCap)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">O'RTACHA FOYDA ULUSHI / DONA</div>
+        <div class="value">${fmt(d.weightedAvgMargin)}</div>
+      </div>
+      <div class="summary-box">
+        <div class="label">UMUMIY ZARARSIZLIK NUQTASI</div>
+        <div class="value ${canReachBreakeven ? '' : 'neg'}">${d.overallBreakeven === Infinity ? '\u2014' : fmt(Math.ceil(d.overallBreakeven))}</div>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <caption>Boshlang'ich sarmoya (bir martalik xarajatlar)</caption>
+      <thead>
+        <tr>
+          <th>Ko'rsatkich</th>
+          <th class="num">Qiymat</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Jami bir martalik xarajat</td><td class="num">${fmt(d.onceTotal)} so'm</td></tr>
+        <tr><td>Amortizatsiya muddati</td><td class="num">${fmt(d.amortMonths)} oy</td></tr>
+        <tr><td>Oylik amortizatsiya (doimiy xarajatga qo'shilgan)</td><td class="num">${fmt(d.monthlyAmort)} so'm</td></tr>
+        <tr><td>Sof oylik xarajat (amortizatsiyasiz)</td><td class="num">${fmt(d.monthlyFixedTotal)} so'm</td></tr>
+        <tr><td>Sarmoyaning qoplanish muddati</td><td class="num ${d.paybackMonths === Infinity ? 'neg' : ''}">${d.paybackMonths === Infinity ? 'Qoplanmaydi (zarar)' : fmt(Math.ceil(d.paybackMonths)) + ' oy'}</td></tr>
+      </tbody>
+    </table>
+
+    <table class="tbl">
+      <caption>Mahsulot/xizmat bo'yicha tafsilot</caption>
+      <thead>
+        <tr>
+          <th>Nomi</th>
+          <th class="num">Narx</th>
+          <th class="num">Sof tannarx*</th>
+          <th class="num">Foyda ulushi*</th>
+          <th class="num">To'liq tannarx**</th>
+          <th class="num">Zararsizlik (kerak/mavjud)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRows}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>JAMI (to'liq sig'im/quvvatda)</td>
+          <td class="num"></td>
+          <td class="num"></td>
+          <td class="num">${fmt(d.totalMarginAtFullCap)}</td>
+          <td class="num"></td>
+          <td class="num ${canReachBreakeven ? '' : 'neg'}">${d.overallBreakeven === Infinity ? '\u2014' : fmt(Math.ceil(d.overallBreakeven))} / ${fmt(d.totalCap)}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <footer class="note">
+      * Sof tannarx va foyda ulushi — bir donaga/xizmatga to'g'ri keladigan xom-ashyo, komissiya, boshqa o'zgaruvchan xarajat va soliqni hisobga oladi.<br>
+      ** To'liq tannarx — doimiy xarajatlar sig'im/quvvat ulushiga qarab shu mahsulot/xizmatga taqsimlangan holda, bir donaga to'g'ri keladigan umumiy xarajat.<br>
+      Zararsizlik ustuni: shu mahsulot/xizmatga taqsimlangan doimiy xarajatni qoplash uchun kerakli dona/o'rin soni / mavjud sig'im.
+    </footer>
+
+    <div style="background:var(--paper-light); border:1px solid var(--rule); border-radius:6px; padding:18px 20px 12px; margin-top:4px;">
+      <div style="font-weight:700; font-size:15px; margin-bottom:12px;">Zararsizlik grafigi</div>
+      <div style="display:flex; gap:22px; flex-wrap:wrap; margin-bottom:10px; font-size:13.5px; font-weight:600;">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e8b3d;margin-right:6px;"></span>Kirim</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#b8382b;margin-right:6px;"></span>Umumiy xarajatlar</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#c98a1c;margin-right:6px;"></span>O'zgarmas xarajatlar</span>
+      </div>
+      ${chartHtml}
+      <p style="font-size:12.5px; color:var(--ink-soft); margin:10px 0 0;">X o'qi — sotilgan dona/o'rin soni (oylik), Y o'qi — summa (so'm). Yashil chiziq qizil chiziqdan yuqoriga o'tgan nuqta — zararsizlik nuqtasi.</p>
+    </div>
+  `;
+
+  if (el && typeof el.scrollIntoView === 'function') {
+    try { el.scrollIntoView({behavior:'smooth', block:'start'}); } catch(e) {}
+  }
+}
+</script>
+</body>
+</html>
